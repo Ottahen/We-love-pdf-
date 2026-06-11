@@ -128,12 +128,7 @@ All libraries are loaded from trusted CDNs – the app works entirely in the bro
 
 ## 📸 Screenshots
 
-| Home Screen | Files Screen | Settings |
-|-------------|--------------|----------|
-| (upload area + format chips) | (searchable list of generated files) | (toggle + GitHub button) |
-
-*Actual UI includes real icons, active states, and responsive layout.*
-
+Guys i hadn't uploaded screenshots sorry for it.
 ---
 
 **Enjoy converting PDFs without ever sending your data to a server!**  
