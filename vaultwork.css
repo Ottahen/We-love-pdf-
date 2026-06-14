@@ -1,0 +1,42 @@
+/* Bottom navigation - 4 items */
+.bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 0;
+}
+.nav-item {
+    flex: 1;
+    text-align: center;
+}
+
+/* Vault option checkbox */
+.vault-option {
+    margin: 10px 0 5px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+}
+.vault-option input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Vault screen */
+.empty-state i.fa-folder-lock {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+/* Adjust settings item for password input */
+.settings-item input {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    border-radius: 30px;
+    border: 1px solid #ddd;
+    background: white;
+}
