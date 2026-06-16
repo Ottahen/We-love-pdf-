@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>We Love PDF · Chaton Fat & Vault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --primary: #4DB6AC;
+            --primary-dark: #3a9b8f;
+            --orange: #FFA726;
+            --orange-dark: #f39c12;
+            --text-main: #1e2a32;
+            --text-muted: #6c7a89;
+            --bg-body: #49c5b6;
+            --bg-app: #F8FAFB;
+            --white: #ffffff;
+        }
+        body {
+            background-color: var(--bg-body);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+        }
+        .phone-container {
+            width: 380px;
+            height: 780px;
+            background-color: var(--bg-app);
+            border-radius: 48px;
+            box-shadow: 0 30px 50px rgba(0,0,0,0.25);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 8px solid #2c2e3a;
+        }
+        .header {
+            padding: 28px 18px 8px;
+            background: var(--bg-app);
+        }
+        .search-bar {
+            background: white;
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: 1px solid #eef2f5;
+        }
+        .search-bar i {
+            color: #b0bec5;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+        .search-bar input {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 0.85rem;
+            background: transparent;
+        }
+        .camera-btn {
+            color: var(--primary);
+            font-size: 1rem;
+        }
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px 80px;
+            scrollbar-width: thin;
+        }
+        .scroll-area::-webkit-scrollbar {
+            width: 3px;
+        }
+        .scroll-area::-webkit-scrollbar-track {
+            background: #e9ecef;
+            border-radius: 10px;
+        }
+        .scroll-area::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .icon-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+            font-size: 1.3rem;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .icon-box.teal {
+            color: var(--primary);
+        }
+        .icon-box.orange {
+            color: var(--orange);
+        }
+        .icon-box.blue {
+            color: #42A5F5;
+        }
+        .action-item span {
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin: 14px 0 10px 0;
+        }
+        .section-header h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .section-header a {
+            font-size: 0.7rem;
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .converter-card,
+        .image-pdf-card {
+            background: white;
+            border-radius: 32px;
+            padding: 20px 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+            border: 1px solid #f0f3f8;
+        }
+        .converter-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .converter-title i {
+            font-size: 1.5rem;
+            color: #ff6b6b;
+        }
+        .converter-title span {
+            font-weight: 800;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #e67e22, #f39c12);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .upload-area,
+        .image-upload-area {
+            background: #fffdf7;
+            border: 2px dashed #ffe0b5;
+            border-radius: 24px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+        }
+        .image-upload-area {
+            border-color: #b5d4ff;
+        }
+        .upload-area:hover,
+        .image-upload-area:hover {
+            border-color: var(--orange);
+            background: #fff9ef;
+            transform: scale(0.98);
+        }
+        .upload-area i,
+        .image-upload-area i {
+            font-size: 2rem;
+            color: var(--orange);
+            margin-bottom: 6px;
+        }
+        .upload-area h4,
+        .image-upload-area h4 {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #2d3e50;
+        }
+        .upload-area p,
+        .image-upload-area p {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            margin-top: 4px;
+        }
+        .file-badge {
+            background: #eef2fa;
+            border-radius: 40px;
+            padding: 5px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        .format-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin: 12px 0 8px 0;
+        }
+        .format-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .format-chip {
+            background: #f2f5f9;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+            color: #3a4b5e;
+        }
+        .format-chip i {
+            font-size: 0.75rem;
+        }
+        .format-chip.active {
+            background: var(--orange);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 167, 38, 0.35);
+        }
+        .convert-btn {
+            width: 100%;
+            background: linear-gradient(95deg, var(--primary), var(--primary-dark));
+            border: none;
+            padding: 12px 0;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.2s;
+            margin: 6px 0 12px 0;
+            box-shadow: 0 6px 14px rgba(77, 182, 172, 0.35);
+        }
+        .convert-btn:disabled {
+            background: #b9cfca;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status-area {
+            background: #fef5e8;
+            border-radius: 20px;
+            padding: 10px 14px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #a5682c;
+            border-left: 3px solid var(--orange);
+        }
+        .loader-mini {
+            width: 14px;
+            height: 14px;
+            border: 2px solid #ffcd94;
+            border-top: 2px solid var(--orange);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .vault-option {
+            margin: 10px 0 5px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+        }
+        .vault-option input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .image-preview-list {
+            max-height: 120px;
+            overflow-y: auto;
+            margin: 12px 0;
+            font-size: 0.7rem;
+        }
+        .image-preview-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid #eef2f5;
+        }
+        .pdf-options {
+            display: flex;
+            gap: 12px;
+            margin: 12px 0;
+            flex-wrap: wrap;
+        }
+        .pdf-options select,
+        .pdf-options button {
+            background: #f2f5f9;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .clear-images {
+            color: #e53e3e;
+            background: #fee2e2 !important;
+        }
+        .file-card {
+            background: white;
+            border-radius: 20px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f0f3f8;
+        }
+        .file-thumb {
+            width: 45px;
+            height: 55px;
+            background: #f5f7fc;
+            border-radius: 14px;
+            margin-right: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        .file-info {
+            flex: 1;
+        }
+        .file-info h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+        .file-info p {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+        .file-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .file-actions i {
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--primary);
+            transition: 0.1s;
+        }
+        .file-actions i:hover {
+            opacity: 0.7;
+        }
+        .premium-card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
+        }
+        .premium-card h2 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        .premium-card p {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        .premium-features {
+            display: flex;
+            justify-content: space-around;
+            margin: 16px 0;
+        }
+        .feature {
+            font-size: 0.65rem;
+            text-align: center;
+        }
+        .feature i {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 6px;
+            display: block;
+        }
+        .upgrade-btn {
+            background: var(--orange);
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 40px;
+            font-weight: 700;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .settings-list {
+            padding: 0 4px;
+        }
+        .settings-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 0.8rem;
+        }
+        .settings-item i:first-child {
+            width: 32px;
+            color: var(--primary);
+        }
+        .settings-item i:last-child {
+            margin-left: auto;
+            color: #cbd5e1;
+            font-size: 0.7rem;
+        }
+        .settings-item input {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 30px;
+            border: 1px solid #ddd;
+            background: white;
+            margin-left: auto;
+            width: 120px;
+        }
+        .settings-item input[type="password"] {
+            width: 100px;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            margin-left: auto;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.2s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.2s;
+            border-radius: 50%;
+        }
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+        .github-btn {
+            background: #24292e;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 10px 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+        .github-btn:hover {
+            background: #1b1f23;
+            transform: scale(0.97);
+        }
+        .vault-password-btn {
+            background: var(--primary);
+            border: none;
+            border-radius: 20px;
+            padding: 4px 10px;
+            color: white;
+            font-size: 0.65rem;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .vault-password-btn:hover {
+            background: var(--primary-dark);
+        }
+        /* Chat Styles */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .chat-message.user {
+            align-self: flex-end;
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-message.assistant {
+            align-self: flex-start;
+            background: white;
+            border: 1px solid #eef2f5;
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+        }
+        .chat-message .role-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            opacity: 0.6;
+            margin-bottom: 4px;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+            padding: 12px 0;
+            background: var(--bg-app);
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 30px;
+            border: 1px solid #eef2f5;
+            font-size: 0.85rem;
+            background: white;
+            outline: none;
+        }
+        .chat-input-area button {
+            background: var(--primary);
+            border: none;
+            border-radius: 30px;
+            padding: 10px 18px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .chat-input-area button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .chat-clear-btn {
+            background: #fee2e2 !important;
+            color: #e53e3e !important;
+        }
+        .chat-clear-btn:hover {
+            background: #fecaca !important;
+        }
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 0;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            height: 68px;
+            border-top: 1px solid #eef2fa;
+        }
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #a0aec0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .nav-item.active {
+            color: var(--primary);
+        }
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        .nav-item span {
+            font-size: 0.55rem;
+            font-weight: 500;
+        }
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+        .screen.active {
+            display: flex;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+        .empty-state i {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        .empty-state i.fa-folder-lock {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        @media (max-width: 420px) {
+            .phone-container {
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+                border: none;
+                max-width: 420px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- HOME SCREEN -->
+        <div id="home-screen" class="screen active">
+            <div class="header">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search PDFs">
+                    <i class="fa-solid fa-camera camera-btn"></i>
+                </div>
+            </div>
+            <div class="scroll-area">
+                <div class="action-grid">
+                    <div class="action-item"><div class="icon-box teal"><i class="fa-solid fa-qrcode"></i></div><span>Smart Scan</span></div>
+                    <div class="action-item"><div class="icon-box blue"><i class="fa-solid fa-file-lines"></i></div><span>Docs</span></div>
+                    <div class="action-item"><div class="icon-box teal"><i class="fa-solid fa-file-pdf"></i></div><span>SVG to PDF</span></div>
+                    <div class="action-item"><div class="icon-box teal"><i class="fa-solid fa-image"></i></div><span>Import Image</span></div>
+                </div>
+                <!-- PDF to Any Format -->
+                <div class="converter-card">
+                    <div class="converter-title">
+                        <i class="fa-regular fa-heart"></i>
+                        <span>PDF to DOCX / HTML / TXT / Images</span>
+                    </div>
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <h4>Tap or drop PDF here</h4>
+                        <p>max 30MB · 100% local & private</p>
+                        <input type="file" id="fileInput" accept=".pdf" style="display:none;">
+                        <div id="filePreview" class="file-badge" style="display:none;">
+                            <i class="fa-regular fa-file-pdf"></i> <span id="fileName"></span>
+                        </div>
+                    </div>
+                    <div class="format-label"><i class="fa-regular fa-circle-dot"></i> Output format</div>
+                    <div class="format-grid" id="formatGrid">
+                        <button data-format="docx" class="format-chip"><i class="fa-regular fa-file-word"></i> DOCX</button>
+                        <button data-format="html" class="format-chip"><i class="fa-solid fa-code"></i> HTML</button>
+                        <button data-format="txt" class="format-chip"><i class="fa-regular fa-file-lines"></i> TXT</button>
+                        <button data-format="png" class="format-chip"><i class="fa-regular fa-image"></i> PNG (ZIP)</button>
+                        <button data-format="jpg" class="format-chip"><i class="fa-regular fa-camera"></i> JPG (ZIP)</button>
+                    </div>
+                    <div class="vault-option">
+                        <label><input type="checkbox" id="saveToVaultCheckbox"> Save to Secret Vault (encrypted)</label>
+                    </div>
+                    <button id="convertBtn" class="convert-btn"><i class="fa-solid fa-wand-magic"></i> Convert Now</button>
+                    <div id="statusMessage" class="status-area">
+                        <i class="fa-regular fa-heart"></i>
+                        <span id="statusText">Ready · Upload PDF & pick format</span>
+                    </div>
+                </div>
+                <!-- Images to PDF -->
+                <div class="image-pdf-card">
+                    <div class="converter-title">
+                        <i class="fa-regular fa-images"></i>
+                        <span>Images to PDF</span>
+                    </div>
+                    <div class="image-upload-area" id="imageUploadArea">
+                        <i class="fa-regular fa-image"></i>
+                        <h4>Select one or more images</h4>
+                        <p>JPG, PNG, GIF, WebP · up to 20 images</p>
+                        <input type="file" id="imageInput" accept="image/*" multiple style="display:none;">
+                        <div id="imagePreviewList" class="image-preview-list" style="display:none;"></div>
+                    </div>
+                    <div class="pdf-options">
+                        <select id="pageSizeSelect">
+                            <option value="a4">A4</option>
+                            <option value="letter">Letter</option>
+                            <option value="fit">Fit to Image</option>
+                        </select>
+                        <select id="orientationSelect">
+                            <option value="portrait">Portrait</option>
+                            <option value="landscape">Landscape</option>
+                        </select>
+                        <button id="clearImagesBtn" class="clear-images"><i class="fa-solid fa-trash-can"></i> Clear</button>
+                    </div>
+                    <div class="vault-option">
+                        <label><input type="checkbox" id="imageToVaultCheckbox"> Save to Secret Vault (encrypted)</label>
+                    </div>
+                    <button id="imagesToPdfBtn" class="convert-btn" style="background:linear-gradient(95deg,#f39c12,#e67e22);"><i class="fa-regular fa-file-pdf"></i> Create PDF from Images</button>
+                </div>
+                <div class="section-header">
+                    <h3>Recent Files</h3>
+                    <a id="clearRecentBtn" style="cursor:pointer;">Clear all <i class="fa-solid fa-trash-can"></i></a>
+                </div>
+                <div id="recentFilesContainer">
+                    <div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No files yet. Convert a PDF or create PDF from images.</p></div>
+                </div>
+            </div>
+        </div>
+        <!-- FILES SCREEN -->
+        <div id="files-screen" class="screen">
+            <div class="header">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search files" id="fileSearchInput">
+                    <i class="fa-solid fa-camera camera-btn"></i>
+                </div>
+            </div>
+            <div class="scroll-area">
+                <div class="action-grid">
+                    <div class="action-item"><div class="icon-box orange"><i class="fa-solid fa-code-merge"></i></div><span>Merge PDF</span></div>
+                    <div class="action-item"><div class="icon-box teal"><i class="fa-solid fa-image"></i></div><span>Import Image</span></div>
+                    <div class="action-item"><div class="icon-box orange"><i class="fa-solid fa-folder-plus"></i></div><span>New Folder</span></div>
+                    <div class="action-item"><div class="icon-box teal"><i class="fa-solid fa-file-import"></i></div><span>Import Files</span></div>
+                </div>
+                <div class="section-header">
+                    <h3>All files (<span id="fileCount">0</span>)</h3>
+                    <div><i class="fa-solid fa-trash-can" id="clearAllFilesBtn" style="color:var(--primary);cursor:pointer;"></i></div>
+                </div>
+                <div id="allFilesContainer">
+                    <div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No generated files yet.</p></div>
+                </div>
+            </div>
+        </div>
+        <!-- VAULT SCREEN -->
+        <div id="vault-screen" class="screen">
+            <div class="header">
+                <div class="search-bar">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="vaultPasswordInput" placeholder="Enter vault password">
+                    <i class="fa-solid fa-key" id="unlockVaultBtn" style="cursor:pointer;color:var(--primary);"></i>
+                </div>
+            </div>
+            <div class="scroll-area">
+                <div class="section-header">
+                    <h3>Secret Vault <i class="fa-solid fa-shield-halved"></i></h3>
+                    <div><i class="fa-solid fa-trash-can" id="clearVaultBtn" style="color:var(--primary);cursor:pointer;"></i></div>
+                </div>
+                <div id="vaultFilesContainer">
+                    <div class="empty-state"><i class="fa-regular fa-folder-lock"></i><p>Enter password to unlock vault.</p></div>
+                </div>
+            </div>
+        </div>
+        <!-- CHATON FAT SCREEN -->
+        <div id="chat-screen" class="screen">
+            <div class="header">
+                <div class="search-bar" style="justify-content:space-between;">
+                    <i class="fa-solid fa-comment-dots" style="color:var(--orange);"></i>
+                    <span style="font-weight:700;font-size:0.9rem;flex:1;text-align:center;">Chaton Fat</span>
+                    <i class="fa-solid fa-trash-can" id="clearChatBtn" style="color:var(--primary);cursor:pointer;"></i>
+                </div>
+            </div>
+            <div class="scroll-area" style="padding-bottom:70px;">
+                <div id="chatMessages" class="chat-messages">
+                    <div class="empty-state"><i class="fa-regular fa-comment"></i><p>Start a conversation. Set API key in Settings.</p></div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Type your message..." />
+                    <button id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i> Send</button>
+                </div>
+            </div>
+        </div>
+        <!-- SETTINGS SCREEN -->
+        <div id="settings-screen" class="screen">
+            <div class="scroll-area">
+                <div class="premium-card">
+                    <h2>✨ Free & Private Converter</h2>
+                    <p>All conversions happen locally · No uploads</p>
+                    <div class="premium-features">
+                        <div class="feature"><i class="fa-solid fa-ban"></i>No servers</div>
+                        <div class="feature"><i class="fa-solid fa-pen-to-square"></i>Real DOCX</div>
+                        <div class="feature"><i class="fa-solid fa-cloud-arrow-up"></i>Local only</div>
+                    </div>
+                    <button class="upgrade-btn" id="premiumFakeBtn"><i class="fa-regular fa-gem"></i> All features free</button>
+                </div>
+                <div class="settings-list">
+                    <div class="settings-item">
+                        <i class="fa-regular fa-pen-to-square"></i> Ask for filename before saving
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="customNamingToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <i class="fa-solid fa-lock"></i> Secret Vault Password
+                        <input type="password" id="vaultSetPassword" placeholder="New password">
+                        <button id="saveVaultPasswordBtn" class="vault-password-btn">Save</button>
+                    </div>
+                    <div class="settings-item">
+                        <i class="fa-solid fa-key"></i> API Key (Chaton Fat)
+                        <input type="password" id="apiKeyInput" placeholder="sk-...">
+                    </div>
+                    <div class="settings-item">
+                        <i class="fa-solid fa-link"></i> API Endpoint
+                        <input type="text" id="apiEndpointInput" placeholder="https://api.openai.com/v1/chat/completions">
+                    </div>
+                    <div class="settings-item"><i class="fa-regular fa-user"></i> Privacy-first mode <i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="settings-item"><i class="fa-solid fa-expand"></i> Local PDF engine <i class="fa-solid fa-check-circle" style="color:#4DB6AC;"></i></div>
+                    <div class="settings-item"><i class="fa-solid fa-file-contract"></i> Client-side only <i class="fa-solid fa-lock"></i></div>
+                    <div class="settings-item"><i class="fa-regular fa-comment-dots"></i> Written by ℒ <i class="fa-regular fa-heart"></i></div>
+                    <div style="margin-top:16px;">
+                        <button id="githubBtn" class="github-btn"><i class="fa-brands fa-github"></i> GitHub · Ottahen</button>
+                    </div>
+                    <div class="settings-item" style="border-bottom:none;justify-content:center;gap:8px;">
+                        <i class="fa-regular fa-copyright"></i> We Love PDF · Open Source
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- BOTTOM NAV -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" data-screen="home-screen"><i class="fa-solid fa-house"></i><span>Home</span></div>
+            <div class="nav-item" data-screen="files-screen"><i class="fa-regular fa-file-lines"></i><span>Files</span></div>
+            <div class="nav-item" data-screen="vault-screen"><i class="fa-solid fa-lock"></i><span>Vault</span></div>
+            <div class="nav-item" data-screen="chat-screen"><i class="fa-solid fa-comment-dots"></i><span>Chaton Fat</span></div>
+            <div class="nav-item" data-screen="settings-screen"><i class="fa-solid fa-gear"></i><span>Settings</span></div>
+        </nav>
+    </div>
+    <script>
+        // ============================================================
+        // FILE MANAGEMENT (normal files)
+        // ============================================================
+        let generatedFiles = [];
+        let customNamingEnabled = true;
+
+        function addGeneratedFile(fileName, blobUrl, fileSize, mimeType) {
+            const id = Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+            generatedFiles.unshift({ id, name: fileName, blobUrl, size: fileSize, date: new Date(), mimeType });
+            renderAllFiles();
+            renderRecentFiles();
+        }
+
+        function deleteFileById(id) {
+            const index = generatedFiles.findIndex(f => f.id === id);
+            if (index !== -1) {
+                URL.revokeObjectURL(generatedFiles[index].blobUrl);
+                generatedFiles.splice(index, 1);
+                renderAllFiles();
+                renderRecentFiles();
+            }
+        }
+
+        function clearAllFiles() {
+            for (let f of generatedFiles) URL.revokeObjectURL(f.blobUrl);
+            generatedFiles = [];
+            renderAllFiles();
+            renderRecentFiles();
+        }
+
+        function renderRecentFiles() {
+            const container = document.getElementById('recentFilesContainer');
+            if (!container) return;
+            const recent = generatedFiles.slice(0, 5);
+            if (recent.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No files yet. Convert a PDF or create PDF from images.</p></div>`;
+                return;
+            }
+            container.innerHTML = recent.map(file => `
+            <div class="file-card">
+              <div class="file-thumb">${getFileIcon(file.name)}</div>
+              <div class="file-info">
+                <h4>${escapeHtml(file.name.length > 30 ? file.name.slice(0,27)+'...' : file.name)}</h4>
+                <p>${formatDate(file.date)} · ${formatSize(file.size)}</p>
+              </div>
+              <div class="file-actions">
+                <i class="fa-solid fa-download" onclick="window.downloadFileById('${file.id}')"></i>
+                <i class="fa-solid fa-lock" onclick="window.moveToVault('${file.id}')" title="Move to Secret Vault"></i>
+                <i class="fa-solid fa-trash-can" onclick="window.deleteFileById('${file.id}')"></i>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        function renderAllFiles() {
+            const container = document.getElementById('allFilesContainer');
+            const countSpan = document.getElementById('fileCount');
+            if (!container) return;
+            const searchTerm = document.getElementById('fileSearchInput')?.value.toLowerCase() || '';
+            let filtered = generatedFiles;
+            if (searchTerm) filtered = generatedFiles.filter(f => f.name.toLowerCase().includes(searchTerm));
+            if (countSpan) countSpan.innerText = filtered.length;
+            if (filtered.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No files found. Create a PDF from images or convert a document.</p></div>`;
+                return;
+            }
+            container.innerHTML = filtered.map(file => `
+            <div class="file-card">
+              <div class="file-thumb">${getFileIcon(file.name)}</div>
+              <div class="file-info">
+                <h4>${escapeHtml(file.name)}</h4>
+                <p>${formatDate(file.date)} · ${formatSize(file.size)}</p>
+              </div>
+              <div class="file-actions">
+                <i class="fa-solid fa-download" onclick="window.downloadFileById('${file.id}')"></i>
+                <i class="fa-solid fa-lock" onclick="window.moveToVault('${file.id}')" title="Move to Secret Vault"></i>
+                <i class="fa-solid fa-trash-can" onclick="window.deleteFileById('${file.id}')"></i>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        window.downloadFileById = function(id) {
+            const file = generatedFiles.find(f => f.id === id);
+            if (file && file.blobUrl) {
+                const a = document.createElement('a');
+                a.href = file.blobUrl;
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        };
+        window.deleteFileById = deleteFileById;
+
+        window.moveToVault = async function(id) {
+            const file = generatedFiles.find(f => f.id === id);
+            if (!file) return;
+            const pwdHash = localStorage.getItem('vault_password_hash');
+            if (!pwdHash) {
+                alert('Please set a vault password in Settings first.');
+                return;
+            }
+            const blob = await fetch(file.blobUrl).then(r => r.blob());
+            const arrayBuffer = await blob.arrayBuffer();
+            const success = await encryptAndStoreInVault(file.name, arrayBuffer, file.size, file.mimeType);
+            if (success) {
+                deleteFileById(id);
+                alert(`"${file.name}" moved to Secret Vault.`);
+            } else {
+                alert('Failed to encrypt file. Wrong password?');
+            }
+        };
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            if (ext === 'docx') return '<i class="fa-regular fa-file-word"></i>';
+            if (ext === 'html') return '<i class="fa-solid fa-code"></i>';
+            if (ext === 'txt') return '<i class="fa-regular fa-file-lines"></i>';
+            if (ext === 'zip') return '<i class="fa-regular fa-file-zipper"></i>';
+            if (ext === 'pdf') return '<i class="fa-regular fa-file-pdf"></i>';
+            return '<i class="fa-regular fa-file"></i>';
+        }
+
+        function formatDate(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' · ' + date.toLocaleDateString();
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
+        }
+
+        async function getFinalFileName(defaultName, extension) {
+            if (!customNamingEnabled) return defaultName;
+            let suggested = defaultName;
+            if (!suggested.includes('.')) suggested += '.' + extension;
+            const userInput = prompt('Name your file (without extension):', suggested.replace('.' + extension, ''));
+            if (userInput === null || userInput.trim() === '') return suggested;
+            let clean = userInput.trim();
+            if (!clean.endsWith('.' + extension)) clean += '.' + extension;
+            return clean;
+        }
+
+        // ============================================================
+        // SECRET VAULT (Encryption)
+        // ============================================================
+        let vaultFiles = [];
+        let vaultUnlocked = false;
+        let currentVaultKey = null;
+
+        async function deriveKey(password, salt) {
+            const enc = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+            return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-GCM',
+                length: 256 }, false, ['encrypt', 'decrypt']);
+        }
+
+        async function encryptAndStoreInVault(fileName, arrayBuffer, size, mimeType) {
+            const storedHash = localStorage.getItem('vault_password_hash');
+            if (!storedHash) return false;
+            const password = prompt('Enter vault password to encrypt this file:');
+            if (!password) return false;
+            const saltHex = localStorage.getItem('vault_salt');
+            if (!saltHex) return false;
+            const salt = new Uint8Array(saltHex.split(',').map(Number));
+            try {
+                const key = await deriveKey(password, salt);
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, arrayBuffer);
+                const encryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+                const ivBase64 = btoa(String.fromCharCode(...iv));
+                const id = Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+                const vaultItem = { id, name: fileName, encryptedData: encryptedBase64, iv: ivBase64, salt: saltHex, size,
+                    mime: mimeType, date: new Date().toISOString() };
+                let existing = JSON.parse(localStorage.getItem('vault_files') || '[]');
+                existing.push(vaultItem);
+                localStorage.setItem('vault_files', JSON.stringify(existing));
+                if (vaultUnlocked) loadVaultFiles();
+                return true;
+            } catch (e) { return false; }
+        }
+
+        async function loadVaultFiles() {
+            const stored = localStorage.getItem('vault_files');
+            if (!stored) { vaultFiles = [];
+                renderVaultFiles(); return; }
+            vaultFiles = JSON.parse(stored);
+            renderVaultFiles();
+        }
+
+        async function decryptVaultFile(item, password) {
+            const salt = new Uint8Array(item.salt.split(',').map(Number));
+            const key = await deriveKey(password, salt);
+            const iv = new Uint8Array(atob(item.iv).split('').map(c => c.charCodeAt(0)));
+            const encryptedData = new Uint8Array(atob(item.encryptedData).split('').map(c => c.charCodeAt(0)));
+            try {
+                const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encryptedData);
+                return new Blob([decrypted], { type: item.mime });
+            } catch (e) { return null; }
+        }
+
+        async function unlockVault(password) {
+            const storedHash = localStorage.getItem('vault_password_hash');
+            const saltHex = localStorage.getItem('vault_salt');
+            if (!storedHash || !saltHex) { alert('No vault password set. Go to Settings.'); return false; }
+            const salt = new Uint8Array(saltHex.split(',').map(Number));
+            const key = await deriveKey(password, salt);
+            const enc = new TextEncoder();
+            const test = enc.encode('test');
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            try {
+                await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, test);
+                currentVaultKey = key;
+                vaultUnlocked = true;
+                await loadVaultFiles();
+                return true;
+            } catch (e) { return false; }
+        }
+
+        function renderVaultFiles() {
+            const container = document.getElementById('vaultFilesContainer');
+            if (!container) return;
+            if (!vaultUnlocked) {
+                container.innerHTML =
+                    `<div class="empty-state"><i class="fa-regular fa-folder-lock"></i><p>Enter password to unlock vault.</p></div>`;
+                return;
+            }
+            if (vaultFiles.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>Vault is empty. Move files from Files screen.</p></div>`;
+                return;
+            }
+            container.innerHTML = vaultFiles.map(file => `
+            <div class="file-card">
+              <div class="file-thumb">${getFileIcon(file.name)}</div>
+              <div class="file-info">
+                <h4>${escapeHtml(file.name)}</h4>
+                <p>${formatDate(new Date(file.date))} · ${formatSize(file.size)}</p>
+              </div>
+              <div class="file-actions">
+                <i class="fa-solid fa-download" onclick="window.downloadVaultFile('${file.id}')"></i>
+                <i class="fa-solid fa-trash-can" onclick="window.deleteVaultFile('${file.id}')"></i>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        window.downloadVaultFile = async function(id) {
+            const file = vaultFiles.find(f => f.id === id);
+            if (!file) return;
+            if (!vaultUnlocked) { alert('Vault locked.'); return; }
+            const password = prompt('Enter vault password to download:');
+            if (!password) return;
+            const blob = await decryptVaultFile(file, password);
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = file.name;
+                a.click();
+                URL.revokeObjectURL(url);
+            } else { alert('Wrong password or corrupted file.'); }
+        };
+
+        window.deleteVaultFile = function(id) {
+            if (!vaultUnlocked) { alert('Vault locked.'); return; }
+            if (confirm('Delete this file from vault permanently?')) {
+                vaultFiles = vaultFiles.filter(f => f.id !== id);
+                localStorage.setItem('vault_files', JSON.stringify(vaultFiles));
+                renderVaultFiles();
+            }
+        };
+
+        function clearVault() {
+            if (!vaultUnlocked) { alert('Vault locked.'); return; }
+            if (confirm('Delete ALL files from vault? This cannot be undone.')) {
+                vaultFiles = [];
+                localStorage.setItem('vault_files', '[]');
+                renderVaultFiles();
+            }
+        }
+
+        async function setVaultPassword(newPassword) {
+            if (!newPassword) return false;
+            if (newPassword.length < 4) { alert('Password must be at least 4 characters.'); return false; }
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const key = await deriveKey(newPassword, salt);
+            const enc = new TextEncoder();
+            const testHash = await crypto.subtle.digest('SHA-256', enc.encode(newPassword));
+            const hashHex = Array.from(new Uint8Array(testHash)).map(b => b.toString(16).padStart(2, '0')).join('');
+            localStorage.setItem('vault_password_hash', hashHex);
+            localStorage.setItem('vault_salt', salt.toString());
+            localStorage.setItem('vault_files', '[]');
+            vaultFiles = [];
+            vaultUnlocked = false;
+            currentVaultKey = null;
+            renderVaultFiles();
+            alert('Vault password set. Existing vault files have been cleared for security.');
+            return true;
+        }
+
+        // ============================================================
+        // PDF CONVERSION ENGINE
+        // ============================================================
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const filePreviewDiv = document.getElementById('filePreview');
+        const fileNameSpan = document.getElementById('fileName');
+        const formatBtns = document.querySelectorAll('.format-chip');
+        const convertBtn = document.getElementById('convertBtn');
+        const statusTextSpan = document.getElementById('statusText');
+        const statusIconSpan = document.querySelector('#statusMessage i');
+        const saveToVaultCheckbox = document.getElementById('saveToVaultCheckbox');
+        const imageToVaultCheckbox = document.getElementById('imageToVaultCheckbox');
+
+        let selectedFile = null;
+        let currentFormat = 'docx';
+
+        function setStatus(message, isError = false, isLoading = false) {
+            statusTextSpan.innerText = message;
+            if (isError) {
+                statusIconSpan.className = 'fas fa-exclamation-triangle';
+                statusIconSpan.style.color = '#dc2626';
+                statusIconSpan.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+            } else if (isLoading) {
+                statusIconSpan.innerHTML = '<div class="loader-mini"></div>';
+                statusIconSpan.style.color = '#f39c12';
+            } else {
+                statusIconSpan.className = 'fa-regular fa-heart';
+                statusIconSpan.innerHTML = '<i class="fa-regular fa-heart"></i>';
+                statusIconSpan.style.color = '#f39c12';
+            }
+        }
+
+        function resetStatusReady() {
+            if (selectedFile) statusTextSpan.innerText = `Loaded: ${selectedFile.name} · Format: ${currentFormat.toUpperCase()}`;
+            else statusTextSpan.innerText = 'Upload a PDF and choose format';
+            statusIconSpan.className = 'fa-regular fa-heart';
+            statusIconSpan.innerHTML = '<i class="fa-regular fa-heart"></i>';
+        }
+
+        function handleFileSelect(file) {
+            if (!file || file.type !== 'application/pdf') {
+                setStatus('Invalid PDF file.', true);
+                selectedFile = null;
+                filePreviewDiv.style.display = 'none';
+                return false;
+            }
+            if (file.size > 30 * 1024 * 1024) {
+                setStatus('File exceeds 30MB limit.', true);
+                selectedFile = null;
+                filePreviewDiv.style.display = 'none';
+                return false;
+            }
+            selectedFile = file;
+            fileNameSpan.innerText = file.name.length > 28 ? file.name.slice(0, 25) + '...' : file.name;
+            filePreviewDiv.style.display = 'inline-flex';
+            setStatus(`Loaded: ${file.name} · Ready for ${currentFormat.toUpperCase()}`, false);
+            resetStatusReady();
+            return true;
+        }
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault();
+            uploadArea.style.borderColor = '#f39c12';
+            uploadArea.style.background = '#fff3e2'; });
+        uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = '#ffe0b5';
+            uploadArea.style.background = '#fffdf7'; });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ffe0b5';
+            uploadArea.style.background = '#fffdf7';
+            if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFileSelect(e.target.files[0]); });
+
+        formatBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                formatBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFormat = btn.getAttribute('data-format');
+                if (selectedFile) setStatus(`Format changed to ${currentFormat.toUpperCase()} · ${selectedFile.name}`,
+                false);
+                else setStatus(`Format set to ${currentFormat.toUpperCase()}. Upload a PDF.`, false);
+                resetStatusReady();
+            });
+        });
+
+        async function extractFullTextFromPDF(arrayBuffer) {
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdfDoc = await loadingTask.promise;
+            let fullText = '';
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                const page = await pdfDoc.getPage(i);
+                const textContent = await page.getTextContent();
+                fullText += textContent.items.map(item => item.str).join(' ') + '\n\n';
+            }
+            return fullText.trim() || "No extractable text (this PDF may be scanned).";
+        }
+
+        function escapeHtmlForText(str) { return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' :
+            '&gt;')); }
+
+        async function convertAndSave(blob, defaultName, extension, mimeType, saveToVault) {
+            const finalName = await getFinalFileName(defaultName, extension);
+            if (saveToVault) {
+                const arrayBuffer = await blob.arrayBuffer();
+                const success = await encryptAndStoreInVault(finalName, arrayBuffer, blob.size, mimeType);
+                if (success) setStatus(`File encrypted and saved to Vault.`, false);
+                else setStatus(`Failed to save to Vault. Check password.`, true);
+            } else {
+                const blobUrl = URL.createObjectURL(blob);
+                addGeneratedFile(finalName, blobUrl, blob.size, mimeType);
+                setStatus(`File saved to Files.`, false);
+            }
+        }
+
+        async function convertToTxt(file, saveToVault) {
+            setStatus('Extracting text for TXT...', false, true);
+            const buf = await file.arrayBuffer();
+            const text = await extractFullTextFromPDF(buf);
+            const blob = new Blob([text], { type: 'text/plain' });
+            const defaultName = file.name.replace(/\.pdf$/i, '') + '.txt';
+            await convertAndSave(blob, defaultName, 'txt', 'text/plain', saveToVault);
+        }
+
+        async function convertToHtml(file, saveToVault) {
+            setStatus('Building HTML document...', false, true);
+            const buf = await file.arrayBuffer();
+            const text = await extractFullTextFromPDF(buf);
+            const html =
+                `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtmlForText(file.name)}</title><style>body{font-family:Inter,sans-serif;max-width:900px;margin:40px auto;padding:20px;background:#fef9e6;}pre{background:#fff2df;padding:20px;border-radius:20px;}</style></head><body><h1>Converted from: ${escapeHtmlForText(file.name)}</h1><pre>${escapeHtmlForText(text)}</pre></body></html>`;
+            const blob = new Blob([html], { type: 'text/html' });
+            const defaultName = file.name.replace(/\.pdf$/i, '') + '.html';
+            await convertAndSave(blob, defaultName, 'html', 'text/html', saveToVault);
+        }
+
+        async function convertToDocx(file, saveToVault) {
+            setStatus('Creating DOCX document...', false, true);
+            const buf = await file.arrayBuffer();
+            const fullText = await extractFullTextFromPDF(buf);
+            const paragraphs = fullText.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+            if (paragraphs.length === 0) paragraphs.push(fullText || "(no content)");
+            const { Document, Packer, Paragraph, TextRun, AlignmentType } = window.docx;
+            const doc = new Document({
+                sections: [{
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: `Converted from: ${file.name}`, bold: true,
+                                size: 32, color: "E67E22"
+                            })], alignment: AlignmentType.CENTER, spacing: { after: 300 } }),
+                        ...paragraphs.map(para => new Paragraph({ children: [new TextRun({ text: para.trim(),
+                                size: 24, font: "Calibri" })], spacing: { after: 200 } }))
+                    ]
+                }]
+            });
+            const blob = await Packer.toBlob(doc);
+            const defaultName = file.name.replace(/\.pdf$/i, '') + '.docx';
+            await convertAndSave(blob, defaultName, 'docx',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document', saveToVault);
+        }
+
+        async function convertToImages(file, imageFormat, saveToVault) {
+            setStatus(`Rendering PDF pages as ${imageFormat.toUpperCase()} images...`, false, true);
+            const buf = await file.arrayBuffer();
+            const pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
+            const numPages = pdfDoc.numPages;
+            const zip = new JSZip();
+            const scale = 2.0;
+            for (let i = 1; i <= numPages; i++) {
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({ scale });
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport, background: 'white' }).promise;
+                let blob;
+                if (imageFormat === 'png') blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+                else blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+                zip.file(`page_${i}.${imageFormat === 'png' ? 'png' : 'jpg'}`, blob, { binary: true });
+                setStatus(`Rendered page ${i}/${numPages}`, false, true);
+            }
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            const defaultName = file.name.replace(/\.pdf$/i, `_${imageFormat}_pages.zip`);
+            await convertAndSave(zipBlob, defaultName, 'zip', 'application/zip', saveToVault);
+        }
+
+        async function startConversion() {
+            if (!selectedFile) { setStatus('No PDF selected.', true); return; }
+            const saveToVault = saveToVaultCheckbox.checked;
+            if (saveToVault && !localStorage.getItem('vault_password_hash')) {
+                alert('Please set a vault password in Settings first.');
+                return;
+            }
+            convertBtn.disabled = true;
+            const originalHTML = convertBtn.innerHTML;
+            convertBtn.innerHTML = '<i class="fa-solid fa-spinner fa-pulse"></i> Converting...';
+            try {
+                if (currentFormat === 'txt') await convertToTxt(selectedFile, saveToVault);
+                else if (currentFormat === 'html') await convertToHtml(selectedFile, saveToVault);
+                else if (currentFormat === 'docx') await convertToDocx(selectedFile, saveToVault);
+                else if (currentFormat === 'png') await convertToImages(selectedFile, 'png', saveToVault);
+                else if (currentFormat === 'jpg') await convertToImages(selectedFile, 'jpg', saveToVault);
+                else throw new Error('Unsupported format');
+                resetStatusReady();
+            } catch (err) { setStatus(`Error: ${err.message}`, true); } finally { convertBtn.disabled = false;
+                convertBtn.innerHTML = originalHTML; if (selectedFile) resetStatusReady(); }
+        }
+        convertBtn.addEventListener('click', startConversion);
+        document.querySelector('.format-chip[data-format="docx"]').classList.add('active');
+        currentFormat = 'docx';
+
+        // ============================================================
+        // IMAGE TO PDF
+        // ============================================================
+        let selectedImages = [];
+        const imageInput = document.getElementById('imageInput');
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const imagePreviewList = document.getElementById('imagePreviewList');
+        const clearImagesBtn = document.getElementById('clearImagesBtn');
+        const imagesToPdfBtn = document.getElementById('imagesToPdfBtn');
+        const pageSizeSelect = document.getElementById('pageSizeSelect');
+        const orientationSelect = document.getElementById('orientationSelect');
+
+        function updateImagePreview() {
+            if (selectedImages.length === 0) { imagePreviewList.style.display = 'none';
+                imagePreviewList.innerHTML = ''; return; }
+            imagePreviewList.style.display = 'block';
+            imagePreviewList.innerHTML = selectedImages.map((img, idx) =>
+                `<div class="image-preview-item"><span><i class="fa-regular fa-image"></i> ${escapeHtml(img.name)} (${formatSize(img.size)})</span><i class="fa-solid fa-trash-can" style="cursor:pointer;color:#e53e3e;" onclick="window.removeImage(${idx})"></i></div>`
+                ).join('');
+        }
+        window.removeImage = function(idx) { selectedImages.splice(idx, 1);
+            updateImagePreview(); };
+        imageUploadArea.addEventListener('click', () => imageInput.click());
+        imageInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            for (let file of files)
+                if (file.type.startsWith('image/')) selectedImages.push(file);
+            updateImagePreview();
+            imageInput.value = '';
+        });
+        clearImagesBtn.addEventListener('click', () => { selectedImages = [];
+            updateImagePreview(); });
+
+        imagesToPdfBtn.addEventListener('click', async () => {
+            if (selectedImages.length === 0) { setStatus('Please select at least one image.', true); return; }
+            const saveToVault = imageToVaultCheckbox.checked;
+            if (saveToVault && !localStorage.getItem('vault_password_hash')) {
+                alert('Please set a vault password in Settings first.');
+                return;
+            }
+            imagesToPdfBtn.disabled = true;
+            const originalText = imagesToPdfBtn.innerHTML;
+            imagesToPdfBtn.innerHTML = '<i class="fa-solid fa-spinner fa-pulse"></i> Creating PDF...';
+            setStatus(`Processing ${selectedImages.length} images...`, false, true);
+            try {
+                const { jsPDF } = window.jspdf;
+                const pageSize = pageSizeSelect.value;
+                const orientation = orientationSelect.value;
+                let pdf;
+                for (let i = 0; i < selectedImages.length; i++) {
+                    const imgFile = selectedImages[i];
+                    const imgData = await new Promise(resolve => { const reader = new FileReader();
+                        reader.onload = e => resolve(e.target.result);
+                        reader.readAsDataURL(imgFile); });
+                    const img = await new Promise(resolve => { const im = new Image();
+                        im.onload = () => resolve(im);
+                        im.src = imgData; });
+                    if (i === 0) {
+                        if (pageSize === 'a4') {
+                            pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
+                        } else if (pageSize === 'letter') {
+                            pdf = new jsPDF({ orientation, unit: 'mm', format: 'letter' });
+                        } else {
+                            pdf = new jsPDF({ orientation: img.width > img.height ? 'landscape' : 'portrait',
+                                unit: 'px', format: [img.width, img.height] });
+                        }
+                    } else { pdf.addPage(); }
+                    if (pageSize === 'fit') {
+                        pdf.addImage(imgData, 'JPEG', 0, 0, img.width, img.height, undefined, 'FAST');
+                    } else {
+                        const pageWidth = pdf.internal.pageSize.getWidth();
+                        const pageHeight = pdf.internal.pageSize.getHeight();
+                        let finalW = pageWidth;
+                        let finalH = (img.height * finalW) / img.width;
+                        if (finalH > pageHeight) { finalH = pageHeight;
+                            finalW = (img.width * finalH) / img.height; }
+                        const x = (pageWidth - finalW) / 2,
+                            y = (pageHeight - finalH) / 2;
+                        pdf.addImage(imgData, 'JPEG', x, y, finalW, finalH, undefined, 'FAST');
+                    }
+                    setStatus(`Added image ${i+1}/${selectedImages.length}`, false, true);
+                }
+                const pdfBlob = pdf.output('blob');
+                const defaultName = `images_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`;
+                await convertAndSave(pdfBlob, defaultName, 'pdf', 'application/pdf', saveToVault);
+                selectedImages = [];
+                updateImagePreview();
+            } catch (err) { setStatus(`Image to PDF error: ${err.message}`, true); } finally { imagesToPdfBtn
+                    .disabled = false;
+                imagesToPdfBtn.innerHTML = originalText; }
+        });
+
+        // ============================================================
+        // CHATON FAT (Chat with API)
+        // ============================================================
+        let chatHistory = [];
+        const chatMessagesContainer = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const chatSendBtn = document.getElementById('chatSendBtn');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+
+        // Load chat history from localStorage
+        function loadChatHistory() {
+            const stored = localStorage.getItem('chat_history');
+            if (stored) {
+                try {
+                    chatHistory = JSON.parse(stored);
+                } catch (e) { chatHistory = []; }
+            } else {
+                chatHistory = [];
+            }
+            renderChatMessages();
+        }
+
+        function saveChatHistory() {
+            localStorage.setItem('chat_history', JSON.stringify(chatHistory));
+        }
+
+        function renderChatMessages() {
+            if (!chatMessagesContainer) return;
+            if (chatHistory.length === 0) {
+                chatMessagesContainer.innerHTML =
+                    `<div class="empty-state"><i class="fa-regular fa-comment"></i><p>Start a conversation. Set API key in Settings.</p></div>`;
+                return;
+            }
+            chatMessagesContainer.innerHTML = chatHistory.map(msg => `
+            <div class="chat-message ${msg.role}">
+              <div class="role-label">${msg.role === 'user' ? 'You' : 'Chaton Fat'}</div>
+              ${escapeHtml(msg.content)}
+            </div>
+          `).join('');
+            // Scroll to bottom
+            const container = chatMessagesContainer.closest('.scroll-area');
+            if (container) container.scrollTop = container.scrollHeight;
+        }
+
+        // Send message to API
+        async function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const endpoint = document.getElementById('apiEndpointInput').value.trim() || 'https://api.openai.com/v1/chat/completions';
+            if (!apiKey) {
+                alert('Please set your API Key in Settings first.');
+                return;
+            }
+            // Add user message to history
+            chatHistory.push({ role: 'user', content: message });
+            saveChatHistory();
+            renderChatMessages();
+            chatInput.value = '';
+            chatSendBtn.disabled = true;
+            chatSendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-pulse"></i>';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo', // you can change to any supported model
+                        messages: chatHistory.map(msg => ({ role: msg.role, content: msg.content })),
+                        stream: false
+                    })
+                });
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`API error (${response.status}): ${errText}`);
+                }
+                const data = await response.json();
+                const assistantReply = data.choices[0].message.content;
+                chatHistory.push({ role: 'assistant', content: assistantReply });
+                saveChatHistory();
+                renderChatMessages();
+            } catch (err) {
+                alert('Error: ' + err.message);
+                // Remove the user message if failed? We keep it.
+            } finally {
+                chatSendBtn.disabled = false;
+                chatSendBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send';
+            }
+        }
+
+        chatSendBtn.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+
+        clearChatBtn.addEventListener('click', () => {
+            if (confirm('Clear entire chat history?')) {
+                chatHistory = [];
+                saveChatHistory();
+                renderChatMessages();
+            }
+        });
+
+        // Load API key and endpoint from localStorage
+        function loadAPIConfig() {
+            const key = localStorage.getItem('api_key');
+            const endpoint = localStorage.getItem('api_endpoint');
+            if (key) document.getElementById('apiKeyInput').value = key;
+            if (endpoint) document.getElementById('apiEndpointInput').value = endpoint;
+        }
+
+        // Save API key and endpoint on change
+        document.getElementById('apiKeyInput').addEventListener('change', function() {
+            localStorage.setItem('api_key', this.value);
+        });
+        document.getElementById('apiEndpointInput').addEventListener('change', function() {
+            localStorage.setItem('api_endpoint', this.value);
+        });
+
+        // ============================================================
+        // UI HELPERS & NAVIGATION
+        // ============================================================
+        document.getElementById('clearAllFilesBtn')?.addEventListener('click', () => { if (confirm('Delete all normal files?'))
+                clearAllFiles(); });
+        document.getElementById('clearRecentBtn')?.addEventListener('click', () => { if (confirm('Delete all normal files?'))
+                clearAllFiles(); });
+        document.getElementById('clearVaultBtn')?.addEventListener('click', () => clearVault());
+        const searchInputFiles = document.getElementById('fileSearchInput');
+        if (searchInputFiles) searchInputFiles.addEventListener('input', () => renderAllFiles());
+
+        const navItems = document.querySelectorAll('.nav-item');
+        const screens = {
+            'home-screen': document.getElementById('home-screen'),
+            'files-screen': document.getElementById('files-screen'),
+            'vault-screen': document.getElementById('vault-screen'),
+            'chat-screen': document.getElementById('chat-screen'),
+            'settings-screen': document.getElementById('settings-screen')
+        };
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const screenId = item.getAttribute('data-screen');
+                if (!screenId || !screens[screenId]) return;
+                Object.values(screens).forEach(s => s.classList.remove('active'));
+                screens[screenId].classList.add('active');
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                if (screenId === 'files-screen') renderAllFiles();
+                if (screenId === 'home-screen') renderRecentFiles();
+                if (screenId === 'vault-screen' && vaultUnlocked) loadVaultFiles();
+                if (screenId === 'chat-screen') renderChatMessages();
+            });
+        });
+
+        // Vault unlock
+        const unlockBtn = document.getElementById('unlockVaultBtn');
+        const vaultPasswordInput = document.getElementById('vaultPasswordInput');
+        unlockBtn.addEventListener('click', async () => {
+            const pwd = vaultPasswordInput.value;
+            if (!pwd) return;
+            const success = await unlockVault(pwd);
+            if (success) {
+                vaultUnlocked = true;
+                setStatus('Vault unlocked.', false);
+                await loadVaultFiles();
+            } else {
+                alert('Wrong password.');
+            }
+        });
+
+        // Set vault password
+        const saveVaultPwdBtn = document.getElementById('saveVaultPasswordBtn');
+        const vaultSetPassword = document.getElementById('vaultSetPassword');
+        saveVaultPwdBtn.addEventListener('click', async () => {
+            const newPwd = vaultSetPassword.value;
+            if (!newPwd) { alert('Enter a password.'); return; }
+            await setVaultPassword(newPwd);
+            vaultSetPassword.value = '';
+            vaultUnlocked = false;
+            renderVaultFiles();
+        });
+
+        const githubBtn = document.getElementById('githubBtn');
+        if (githubBtn) githubBtn.addEventListener('click', () => window.open('https://github.com/Ottahen', '_blank'));
+        const premiumBtn = document.getElementById('premiumFakeBtn');
+        if (premiumBtn) premiumBtn.addEventListener('click', () => setStatus('All features are already free and client‑side!',
+            false));
+
+        const namingToggle = document.getElementById('customNamingToggle');
+        if (namingToggle) namingToggle.addEventListener('change', (e) => { customNamingEnabled = e.target.checked;
+            setStatus(`Custom naming ${customNamingEnabled ? 'enabled' : 'disabled'}`, false); });
+
+        // Init
+        loadChatHistory();
+        loadAPIConfig();
+        renderRecentFiles();
+        renderAllFiles();
+        setStatus('We Love PDF! Chat with Chaton Fat using your own API key.', false);
+    </script>
+</body>
+</html>
